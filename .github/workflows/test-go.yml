@@ -24,7 +24,7 @@ jobs:
       - name: Test
         run: go test -v ./...
 
-      -name: Build & push Docker image
+      -name: Build and push Docker image
         uses: mr-smithers-excellent/docker-build-push@v5
         with:
           image: athioushranjan/docker_6learn
