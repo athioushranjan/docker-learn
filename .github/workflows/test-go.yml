@@ -40,7 +40,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: build tag and push image to ECR
+      - name: Build tag and push image to ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -50,7 +50,10 @@ jobs:
           docker build \
           --tag $ECR_REGISTRY/$ECR_REPOSITORY:latest \
           .
-
+          
+          echo "$ECR_REGISTRY"
+          echo "$ECR_REPOSITORY"
+          echo "$IMAGE_TAG"
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
@@ -58,7 +61,7 @@ jobs:
         run: |
           aws ecs describe-task-definition --task-definition $ECS_TASK --query taskDefinition > task-definition.json
 
-      - name: fill in the new image ID in the Amazon ECS task definition
+      - name: Fill new image id in Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
