@@ -21,6 +21,7 @@ jobs:
           echo "ECS_REGION=ap-south-1" >> "$GITHUB_ENV"
           echo "ECS_SERVICE=docker-learn-service" >> "$GITHUB_ENV"
           echo "ECS_CLUSTER=docker-learn-cluster" >> "$GITHUB_ENV"
+          echo "ECR_REPOSITORY=docker-learn" >> "$GITHUB_ENV"
           echo "ECS_TASK=docker-learn-task" >> "$GITHUB_ENV"
           echo "CONTAINER_NAME=docker-learn-container" >> "$GITHUB_ENV"
           echo "AWS_KEY=$AWS_ACCESS_KEY_ID" >> "$GITHUB_ENV"
@@ -44,7 +45,7 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ env.CONTAINER_NAME }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           # Build a docker container and
