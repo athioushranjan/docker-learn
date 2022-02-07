@@ -48,8 +48,8 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
         docker build \
-        --tag $ECR_REGISTRY/$ECR_REPOSITORY:latest \ 
-        .
+          --tag $ECR_REGISTRY/$ECR_REPOSITORY:latest \ 
+          .
 
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:latest"
