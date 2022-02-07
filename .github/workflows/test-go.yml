@@ -11,21 +11,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Set branch name
+        run: echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
+      - name: Set branch environments
+        run: |-
+          if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/heads/main" ]]; then
+          echo "ECS_REGION=ap-south-1" >> "$GITHUB_ENV"
+          echo "ECS_SERVICE=docker-learn-service" >> "$GITHUB_ENV"
+          echo "ECS_CLUSTER=docker-learn-cluster" >> "$GITHUB_ENV"
+          echo "ECS_TASK=docker-learn-task" >> "$GITHUB_ENV"
+          echo "CONTAINER_NAME=docker-learn-container" >> "$GITHUB_ENV"
+          fi
       - name: checkout
         uses: actions/checkout@v2
 
       - name: Set up Go
         uses: actions/setup-go@v2
-        with:
-          go-version: 1.17
 
-      - name: Build
-        run: go build -v ./...
 
-      - name: Test
-        run: go test -v ./...
-
-        # connect to docker
       - name: Build & push Docker image
         uses: mr-smithers-excellent/docker-build-push@v5
         with:
@@ -33,12 +36,71 @@ jobs:
           registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-          # Build the Docker image
-      - name: Build docker image
         run: |-
           docker build \
           --tag "${{ secrets.IMAGE_NAME }}:$BRANCH-$GITHUB_SHA"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{env.ECS_REGION}}
+      - name: login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: build tag and push image to ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.CONTAINER_NAME }}
+          IMAGE_TAG: ${{ github.sha }}
+
+      - name: Build docker image
+        run: |-
+          docker build \
+          --tag "gcr.io/$PROJECT_ID/$IMAGE:$BRANCH-$GITHUB_SHA" \
+          --build-arg GITHUB_SHA="$GITHUB_SHA" \
+          --build-arg GITHUB_REF="$GITHUB_REF" \
+
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition $ECS_TASK --query taskDefinition > task-definition.json
+
+      - name: fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+         
           
           
           
