@@ -35,8 +35,14 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
   deploy-ecs:
-    name: Upload to ecs
+    needs: build
+    name: Deploy on ECS
     runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
+      contents: read
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
