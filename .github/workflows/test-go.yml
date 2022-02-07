@@ -25,18 +25,17 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: Set up Go
-        uses: actions/setup-go@v2
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{env.ECS_REGION}}
+
       - name: login to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+
       - name: build tag and push image to ECR
         id: build-image
         env:
