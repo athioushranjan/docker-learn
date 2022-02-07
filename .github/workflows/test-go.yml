@@ -47,8 +47,8 @@ jobs:
           ECR_REPOSITORY: ${{ env.CONTAINER_NAME }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-        docker build \
-          --tag $ECR_REGISTRY/$ECR_REPOSITORY:latest \ 
+          docker build \
+          --tag $ECR_REGISTRY/$ECR_REPOSITORY:latest \
           .
 
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
