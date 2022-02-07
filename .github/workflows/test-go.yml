@@ -22,6 +22,8 @@ jobs:
           echo "ECS_CLUSTER=docker-learn-cluster" >> "$GITHUB_ENV"
           echo "ECS_TASK=docker-learn-task" >> "$GITHUB_ENV"
           echo "CONTAINER_NAME=docker-learn-container" >> "$GITHUB_ENV"
+          echo "AWS_KEY=$AWS_ACCESS_KEY_ID" >> "$GITHUB_ENV"
+          echo "AWS_SECRET=$AWS_SECRET_ACCESS_KEY" >> "$GITHUB_ENV"
           fi
       - name: checkout
         uses: actions/checkout@v2
